@@ -48,7 +48,7 @@
 
 (defn card-won? [card]
   (or (some row-column-won? card)
-    (some row-column-won? (map (partial get-column card) (range 5)))))
+    (some row-column-won? (pmap (partial get-column card) (range 5)))))
 
 (defn sum-row [y row]
   (reduce (fn [x n]
@@ -67,9 +67,19 @@
       (* prev-move (sum-unmarked (first (filter card-won? cards))))
       (recur (pmap (partial mark-card (first moves)) cards) (rest moves) (first moves)))))
 
+(defn score-worst-card [bingo-cards all-moves]
+  (loop [cards bingo-cards
+         moves all-moves
+         prev-move -1]
+    (if (= 1 (count cards))
+      (mark-all-cards cards moves)
+      (recur (filter (comp not card-won?) (pmap (partial mark-card (first moves)) cards))
+        (rest moves) (first moves)))))
+
 (let [lines       (process-file "day4/input.txt")
       moves       (get-moves (first lines))
       bingo-cards (get-bingo-cards (rest (rest lines)))]
   (println moves)
   (println (mark-all-cards bingo-cards moves))
+  (println (score-worst-card bingo-cards moves))
 )
